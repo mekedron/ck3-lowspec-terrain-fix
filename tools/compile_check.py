@@ -51,6 +51,8 @@ TARGETS = [
     ('tree.shader', 'tree_lod', False, 'vanilla'),
     ('tree.shader', 'tree', True, 'vanilla'),
     ('pdxwater.shader', 'water', False, 'vanilla'),
+    ('pdxwater.shader', 'waterLowSpec', True, 'vanilla'),
+    ('pdxwater.shader', 'lake', True, 'vanilla'),
     ('pdxmesh.shader', 'standard_atlas', False, 'vanilla'),
     ('pdxmesh.shader', 'standard_usercolor', False, 'vanilla'),
     ('pdxmesh.shader', 'standard_winter', False, 'vanilla'),
