@@ -4,6 +4,15 @@ Restores per-pixel terrain detail textures when the graphics option
 **Advanced Shaders** is turned off. Vanilla makes the whole map look like a
 blurry watercolour in that mode, regardless of the Texture Quality setting.
 
+<img src="thumbnail.png" alt="Same desert with Advanced Shaders off: blurry in vanilla, sharp with this mod" width="360">
+
+## Download
+
+* [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3800159542)
+* [Paradox Mods](https://mods.paradoxplaza.com/mods/158878/Any)
+
+Or build it from this repository - see [Installing](#installing) below.
+
 ## Cause
 
 It is not a texture streaming or Texture Quality bug. With Advanced Shaders off
