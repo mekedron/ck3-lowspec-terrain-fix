@@ -6,7 +6,7 @@ blurry watercolour in that mode, regardless of the Texture Quality setting.
 
 <img src="thumbnail.png" alt="Same desert with Advanced Shaders off: blurry in vanilla, sharp with this mod" width="360">
 
-## Download
+## Where to get
 
 * [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3800159542)
 * [Paradox Mods](https://mods.paradoxplaza.com/mods/158878/Any)
