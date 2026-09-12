@@ -37,8 +37,10 @@ def make(out, title, before, after, crop_before, crop_after, sub="ADVANCED SHADE
     tw = d.textlength(title, font=f_title); d.text(((S - tw) / 2, 18), title, font=f_title, fill=CREAM)
     sw = d.textlength(sub, font=f_sub); d.text(((S - sw) / 2, 118), sub, font=f_sub, fill=GOLD)
     # half labels
-    label(d, BAND + 22, "BEFORE", f_tag)
-    label(d, BAND + HALF + 22, "AFTER", f_tag)
+    # labels at the bottom of each half, so the top of the screenshot stays clear
+    tag_h = f_tag.size + 22 * 2 - 10
+    label(d, BAND + HALF - tag_h - 22, "BEFORE", f_tag)
+    label(d, S - tag_h - 22, "AFTER", f_tag)
     # seams
     d.rectangle([0, BAND - 4, S, BAND], fill=GOLD)
     d.rectangle([0, BAND + HALF - 3, S, BAND + HALF + 2], fill=GOLD)
