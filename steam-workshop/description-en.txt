@@ -34,6 +34,14 @@ Everything that actually makes Advanced Shaders expensive stays switched off: no
 [*]Built for CK3 1.19.x. Shader overrides replace the vanilla file wholesale, so a patch that reworks pdxterrain.shader will need an update here
 [/list]
 
+[h2]Add-ons[/h2]
+
+Optional features are switched from one small options file the shader includes, so an add-on can turn them on without replacing the shader. Place add-ons [b]below[/b] this mod in the load order.
+
+[list]
+[*][b]Real Snow Without Advanced Shaders[/b] — the high spec snow material on the low spec map: a solid snow cover with relief, sheen and frost instead of flat blotches. About 4 ms of frame time in winter at 5120x1440 on a 4 GB laptop GPU. [url=STEAM_LINK_REAL_SNOW]Workshop[/url]
+[/list]
+
 [h2]Compatibility[/h2]
 
 Replaces gfx/FX/pdxterrain.shader in full. It conflicts only with mods that edit that same file — mostly map graphics overhauls. If you use one, place this mod [b]below[/b] it in the load order to keep the fix, or above it to keep the other mod's terrain.

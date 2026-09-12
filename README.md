@@ -99,12 +99,31 @@ The *hitches* while crossing zoom thresholds are a separate problem with a
 separate cause, and live in
 [Smooth Zoom Transitions](https://github.com/mekedron/ck3-zoom-transition-fix).
 
+## Options and add-ons
+
+The shader's optional features are switched from one small file,
+`gfx/FX/sharp_terrain_options.fxh`, which the shader includes first. The base mod
+ships it with everything commented out. An add-on mod that contains only its own copy
+of that file, placed **below** Sharp Terrain in the load order, replaces it and turns
+an option on without duplicating the shader - the game resolves includes by path
+across all mods, and the lowest mod wins.
+
+| option | what it does | add-on |
+| --- | --- | --- |
+| `TERRAINOPT_SNOW_MATERIAL` | the high spec snow material (height blend, normals, roughness, frost) instead of the flat procedural low spec snow; about 4 ms of frame time in winter at 5120x1440 on a 3050 Ti Laptop | [Real Snow Without Advanced Shaders](https://github.com/mekedron/ck3-lowspec-real-snow) |
+
+You can also uncomment the define in the base mod's own file, of course.
+
 ## Layout
 
     descriptor.mod              mod metadata (read from inside the mod dir)
     thumbnail.png               Workshop preview image, must sit in the mod root
     gfx/FX/pdxterrain.shader    overrides game/gfx/FX/pdxterrain.shader
+    gfx/FX/sharp_terrain_options.fxh   the option switches, overridable by add-ons
     install.sh                  copies the mod into the Proton prefix
+    tools/compile_check.py      offline compile check with DXC (see the file's docstring)
+    tools/check_log.sh          mount + shader error check after a game start
+    tools/diff_vanilla.sh       re-diff against the Steam file after a patch
     steam-workshop/             Workshop listing texts and the thumbnail generator
 
 ## Installing

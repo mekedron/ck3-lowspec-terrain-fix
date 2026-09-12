@@ -1,6 +1,11 @@
 # Sharp Terrain Without Advanced Shaders - modified copy of
 # game/gfx/FX/pdxterrain.shader from CK3 1.19.0.6 (Scribe).
 #
+# Options live in gfx/FX/sharp_terrain_options.fxh (included first). Add-on mods
+# override that one file to switch options on - see the README. Currently:
+#   TERRAINOPT_SNOW_MATERIAL  the high spec snow material in the low spec pixel
+#                             shader (the "Real Snow Without Advanced Shaders" add-on)
+#
 # Vanilla evaluates the terrain detail textures per *vertex* when "Advanced
 # Shaders" is off (CalculateDetailsLowSpec is called from TerrainVertexLowSpec
 # and the result is passed down as an interpolant), which smears the ground
@@ -21,6 +26,7 @@
 # unreferenced, for diffing against future game patches.
 
 Includes = {
+	"sharp_terrain_options.fxh"
 	"cw/pdxterrain.fxh"
 	"cw/heightmap.fxh"
 	"cw/shadow.fxh"
@@ -445,6 +451,10 @@ PixelShader =
 		//   block is skipped and the overlay is returned directly. The output
 		//   is bit identical; only the discarded work goes away.
 		#define TERRAINOPT_SKIP_HIDDEN_TERRAIN
+
+		// TERRAINOPT_SNOW_MATERIAL is not defined here: it comes from
+		// gfx/FX/sharp_terrain_options.fxh, so that an add-on mod can switch it on by
+		// overriding that single file.
 
 		static const float UNDERWATER_CLIP_OFFSET = 0.00001f;
 		static const float TERRAIN_SKIRT_CLIP_OFFSET = 0.01f;
@@ -871,7 +881,15 @@ PixelShader =
 				float SnowHighlight = 0.0f;
 				float3 Normal = CalculateNormal( Input.WorldSpacePos.xz );
 				#ifndef UNDERWATER
-					DetailDiffuse = ApplyDynamicMasksDiffuse( DetailDiffuse, Normal, ColorMapCoords );
+					#ifdef TERRAINOPT_SNOW_MATERIAL
+						// The snow material blends into the detail height, normal and
+						// material as well, so snow gets its own normals and roughness,
+						// and SnowHighlight feeds the white highlight compensation below.
+						ApplySnowMaterialTerrain( DetailDiffuseHeight, DetailNormal, DetailMaterial, Normal, Input.WorldSpacePos.xz, ColorMapCoords, SnowHighlight );
+						DetailDiffuse = DetailDiffuseHeight.rgb;
+					#else
+						DetailDiffuse = ApplyDynamicMasksDiffuse( DetailDiffuse, Normal, ColorMapCoords );
+					#endif
 				#endif
 
 				// Detail normal maps are sampled by CalculateDetails anyway, so using
