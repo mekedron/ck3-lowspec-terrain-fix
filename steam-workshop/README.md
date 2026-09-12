@@ -61,3 +61,12 @@ The image is rebuilt from raw pixels, so it carries no PNG text chunks, no EXIF 
 ICC profile from the source screenshots. Verify any replacement before committing it:
 
     python3 -c "from PIL import Image; im=Image.open('thumbnail.png'); print(len(im.getexif()), im.info)"
+
+The Paradox Mods files are **generated** from the Steam ones by
+`tools/bbcode_to_plain.py`; edit the BBCode version and re-run it rather than
+editing them directly, or the two will drift apart.
+
+**Do not use `[code]` in the Steam files.** Steam has no inline code tag - it
+renders `[code]` as a full-width block, so an identifier written mid-sentence
+breaks the line and becomes its own boxed paragraph. Identifiers are written
+as plain text instead.

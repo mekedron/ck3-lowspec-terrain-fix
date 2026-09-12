@@ -1,5 +1,7 @@
 Sharp Terrain Without Advanced Shaders
 
+Guide: https://steamcommunity.com/sharedfiles/filedetails/?id=3800254441 — the full settings list this mod is built around, on a 4 GB laptop GPU at 5120x1440.
+
 With the Advanced Shaders graphics option turned off, the entire map turns into a blurry watercolour — no matter how high Texture Quality is set. This mod restores full-resolution ground textures while leaving that option off.
 
 THE CAUSE

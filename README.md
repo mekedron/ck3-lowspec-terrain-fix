@@ -4,6 +4,8 @@ Restores per-pixel terrain detail textures when the graphics option
 **Advanced Shaders** is turned off. Vanilla makes the whole map look like a
 blurry watercolour in that mode, regardless of the Texture Quality setting.
 
+**Guide:** [CK3 on a potato PC: a locked 60 FPS, and the map still looks sharp](https://steamcommunity.com/sharedfiles/filedetails/?id=3800254441) - the full settings list this mod is built around.
+
 <img src="thumbnail.png" alt="Same desert with Advanced Shaders off: blurry in vanilla, sharp with this mod" width="360">
 
 ## Where to get
