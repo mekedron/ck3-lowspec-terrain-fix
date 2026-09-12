@@ -152,7 +152,15 @@ def apply_blocks(target, vanilla_path, mod_path, main_map=None):
     """Replace every vanilla Code block found in the expanded file with the mod's
     block of the same key (or of the mapped main name). Returns a list of notes."""
     lines = open(target, 'rb').read().decode('utf-8', 'replace').split('\n')
-    norm = lambda l: l.strip()
+    import re as _re
+    sig = _re.compile(r'^\w[\w<>, ]* main\s*\(')
+    def norm(l):
+        l = l.strip()
+        # the engine replaces the PDX_MAIN line of a MainCode block with the real
+        # entry point signature; treat both spellings as the same line
+        if l.startswith('PDX_MAIN') or sig.match(l):
+            return 'PDX_MAIN'
+        return l
     van = code_blocks(read(vanilla_path)); mod = code_blocks(read(mod_path))
     for old_main, new_main in (main_map or {}).items():
         if ('main', new_main) in mod:
@@ -169,7 +177,11 @@ def apply_blocks(target, vanilla_path, mod_path, main_map=None):
         if not hits:
             continue  # this block is not part of the expanded entry (other MainCode)
         k = hits[0]
-        lines[k:k+len(pat)] = mod[key]
+        signature = [l for l in lines[k:k+len(pat)] if norm(l) == 'PDX_MAIN']
+        new_block = list(mod[key])
+        if signature:
+            new_block = [signature[0] if norm(l) == 'PDX_MAIN' else l for l in new_block]
+        lines[k:k+len(pat)] = new_block
     open(target, 'wb').write('\n'.join(lines).encode('utf-8'))
     return notes
 
