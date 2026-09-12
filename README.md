@@ -69,6 +69,34 @@ vanilla low spec and Advanced Shaders on, much closer to low spec.
 Only the terrain is touched. Water, rivers, trees, meshes and the surround map
 keep their vanilla low spec variants.
 
+## Zoomed out: skipping terrain nobody can see
+
+From `NTerrainCulling.REALM_COLOR_MAP_FULLY_ZOOM_STEP` (zoom step 15) outwards
+the realm colour overlay is fully opaque and the terrain under it contributes
+nothing to the frame. Vanilla already knows this and gates the sun lighting
+and the fog on `!IsFullyColorOverlay`, but it still samples the colormap, runs
+`CalculateNormal` (four heightmap taps) and `ApplyDynamicMasksDiffuse` (four
+snow-mask taps) and discards the result - and the per-pixel `CalculateDetails`
+this mod adds would be discarded with it.
+
+`#define TERRAINOPT_SKIP_HIDDEN_TERRAIN`, at the top of the `PixelShader`
+`Code` block, guards an early out that returns the overlay directly in that
+case. It reproduces the vanilla tail exactly, including the
+`TERRAIN_FLAT_MAP_LERP` ordering where the Lerp variant overwrites
+`BorderPostLightingBlend` before it is used, so **the output is bit identical**
+- the only thing that changes is the work that was being thrown away. Comment
+the define out to go back to the previous behaviour.
+
+The overlay itself is still not cheap: once it is on, every terrain pixel pays
+roughly 39 texture fetches for the province colours, the border distance field
+and the highlight layer (`BilinearColorSample` is four indirection lookups plus
+four loads, and there are three of those, plus a five-tap distance field). That
+is unchanged here.
+
+The *hitches* while crossing zoom thresholds are a separate problem with a
+separate cause, and live in
+[Smooth Zoom Transitions](https://github.com/mekedron/ck3-zoom-transition-fix).
+
 ## Layout
 
     descriptor.mod              mod metadata (read from inside the mod dir)

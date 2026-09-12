@@ -15,6 +15,8 @@
 #   * new MainCode PixelShaderLowSpecSharp
 #   * Effect PdxTerrainLowSpec      -> VertexShader + PixelShaderLowSpecSharp
 #   * Effect PdxTerrainLowSpecSkirt -> VertexShaderSkirt + PixelShaderLowSpecSharp
+#   * #define TERRAINOPT_SKIP_HIDDEN_TERRAIN in the PixelShader Code block, and
+#     the early out it guards inside PixelShaderLowSpecSharp
 # The vanilla VertexShaderLowSpec / PixelShaderLowSpec blocks are left in place,
 # unreferenced, for diffing against future game patches.
 
@@ -429,6 +431,21 @@ PixelShader =
 
 	Code
 	[[
+		// Switch for the one optimisation in this file. Comment it out to get
+		// the plain sharp-terrain behaviour back.
+		//
+		// TERRAINOPT_SKIP_HIDDEN_TERRAIN
+		//   Once the realm colour overlay is fully opaque (zoom step
+		//   NTerrainCulling.REALM_COLOR_MAP_FULLY_ZOOM_STEP and beyond) the
+		//   terrain surface underneath it is not visible at all. Vanilla
+		//   already skips the sun lighting and the fog there, but still
+		//   samples the colormap, the heightmap normal and the snow masks and
+		//   throws the result away - and this mod adds a full per pixel
+		//   CalculateDetails on top of that. With the switch on, that whole
+		//   block is skipped and the overlay is returned directly. The output
+		//   is bit identical; only the discarded work goes away.
+		#define TERRAINOPT_SKIP_HIDDEN_TERRAIN
+
 		static const float UNDERWATER_CLIP_OFFSET = 0.00001f;
 		static const float TERRAIN_SKIRT_CLIP_OFFSET = 0.01f;
 		SLightingProperties GetFlatMapLerpSunLightingProperties( float3 WorldSpacePos, float ShadowTerm )
@@ -786,6 +803,51 @@ PixelShader =
 				{
 					IsFullyColorOverlay = true;
 				}
+
+				#if defined( TERRAIN_COLOR_OVERLAY ) && defined( TERRAINOPT_SKIP_HIDDEN_TERRAIN )
+					// Everything from here to the sun lighting only feeds
+					// CalculateTerrainSunLightingLowSpec, which is already gated on
+					// !IsFullyColorOverlay. Take the same exit early instead, so the
+					// detail textures, the colormap, CalculateNormal and the snow
+					// masks are never sampled for a surface that is fully covered.
+					if ( IsFullyColorOverlay )
+					{
+						float OverlayPost = BorderPostLightingBlend;
+						float3 OverlayFlatMap = FlatMap;
+						#ifdef TERRAIN_FLAT_MAP_LERP
+							// Matches the main path, where the Lerp variant overwrites
+							// BorderPostLightingBlend before it is used below.
+							float3 OverlayFlatColor;
+							float OverlayPre;
+							GetBorderColorAndBlendGameLerp( Input.WorldSpacePos.xz, FlatMap,
+								OverlayFlatColor, OverlayPre, OverlayPost, FlatMapLerp );
+							OverlayFlatMap = lerp( FlatMap, OverlayFlatColor,
+								saturate( OverlayPre + OverlayPost ) );
+						#endif
+
+						float3 OverlayColor = lerp( vec3( 0.0f ), BorderColor, OverlayPost );
+
+						float4 OverlayHighlight = GetHighlightColor( ColorMapCoords );
+						ApplyHighlightColor( OverlayColor, OverlayHighlight );
+						// SnowHighlight is never written in this shader, so it is 0 here too.
+						CompensateWhiteHighlightColor( OverlayColor, OverlayHighlight, 0.0f );
+
+						#ifdef TERRAIN_FLAT_MAP_LERP
+							OverlayColor = lerp( OverlayColor, OverlayFlatMap, FlatMapLerp );
+						#endif
+
+						float OverlayAlpha = 1.0f;
+						#ifdef UNDERWATER
+							OverlayAlpha = CompressWorldSpace( Input.WorldSpacePos );
+						#endif
+
+						#ifdef TERRAIN_DEBUG
+							TerrainDebug( OverlayColor, Input.WorldSpacePos );
+						#endif
+
+						return float4( OverlayColor, OverlayAlpha );
+					}
+				#endif
 
 				// The one actual change: per pixel detail sampling, with proper
 				// mip selection, instead of the per vertex CalculateDetailsLowSpec.
