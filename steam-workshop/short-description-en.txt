@@ -1,0 +1,1 @@
+With Advanced Shaders off, CK3 samples terrain detail textures once per vertex and the map turns to mush. This mod moves that to per pixel and keeps the cheap low spec lighting. Ironman-safe.

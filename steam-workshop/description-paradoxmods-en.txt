@@ -1,0 +1,40 @@
+Sharp Terrain Without Advanced Shaders
+
+With the Advanced Shaders graphics option turned off, the entire map turns into a blurry watercolour — no matter how high Texture Quality is set. This mod restores full-resolution ground textures while leaving that option off.
+
+THE CAUSE
+
+It is not texture streaming and it is not your Texture Quality setting. With Advanced Shaders off the map is drawn by Effect PdxTerrainLowSpec in gfx/FX/pdxterrain.shader, and that effect does its detail texture work in the vertex shader: CalculateDetailsLowSpec() is called from TerrainVertexLowSpec(), and the resulting diffuse, material, colormap and normal are passed down to the pixel shader as interpolated values.
+
+The effective resolution of the ground is therefore the density of the terrain mesh, not the resolution of the textures. The textures are loaded at full size — they are simply sampled once per vertex and smeared across each triangle. The high spec pixel shader calls CalculateDetails() once per pixel instead, which is exactly why switching Advanced Shaders on looks sharp.
+
+THE FIX
+
+The mod adds one new pixel shader and rewires the two low spec terrain effects to it:
+
+- detail textures are sampled per pixel, with proper ddx/ddy mip selection, instead of per vertex with PdxTex2DLod0
+- colormap and terrain normal are sampled per pixel as well
+- detail normal maps are applied — CalculateDetails() samples them anyway, so they cost nothing extra
+- the effects now use the plain vertex shader, so the per-vertex detail work disappears entirely
+
+Everything that actually makes Advanced Shaders expensive stays switched off: no shadow map lookups, no cloud shadows, no province effects (snow, drought, flooding), no cubemap lighting, no overcast contrast, and the cheap low spec sun lighting is kept as is. Expect the cost to land between vanilla low spec and Advanced Shaders on — much closer to low spec.
+
+NOTES
+
+- Keep Advanced Shaders off. With it on the game uses the high spec effect and this mod does nothing at all
+- Only the terrain is touched — water, rivers, trees, map meshes and the surround map keep their vanilla low spec versions
+- Graphics-only: no gameplay, script or history files are changed, so ironman and achievements are unaffected
+- Safe to add or remove at any time, including mid-campaign — it does not touch save games
+- The first map load after enabling is slower: the modified shader is compiled and cached from scratch
+- Built for CK3 1.19.x. Shader overrides replace the vanilla file wholesale, so a patch that reworks pdxterrain.shader will need an update here
+
+COMPATIBILITY
+
+Replaces gfx/FX/pdxterrain.shader in full. It conflicts only with mods that edit that same file — mostly map graphics overhauls. If you use one, place this mod below it in the load order to keep the fix, or above it to keep the other mod's terrain.
+
+SOURCE
+
+The full source is on GitHub, including the exact change against the vanilla shader and an install script for Linux / Proton users:
+https://github.com/mekedron/ck3-lowspec-terrain-fix
+
+Issues and pull requests are welcome.

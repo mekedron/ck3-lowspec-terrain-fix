@@ -14,6 +14,7 @@ mkdir -p "$DST/mod/$NAME"
 rm -rf "$DST/mod/$NAME/gfx"
 cp -r "$SRC/gfx" "$DST/mod/$NAME/gfx"
 cp "$SRC/descriptor.mod" "$DST/mod/$NAME/descriptor.mod"
+cp "$SRC/thumbnail.png" "$DST/mod/$NAME/thumbnail.png"
 { cat "$SRC/descriptor.mod"; printf 'path="mod/%s"\r\n' "$NAME"; } > "$DST/mod/$NAME.mod"
 
 echo "Установлено в $DST/mod/$NAME"

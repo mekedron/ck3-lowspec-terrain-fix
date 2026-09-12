@@ -5,4 +5,5 @@ tags={
 	"Utilities"
 }
 name="Sharp Terrain Without Advanced Shaders"
+picture="thumbnail.png"
 supported_version="1.19.*"

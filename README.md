@@ -63,8 +63,10 @@ keep their vanilla low spec variants.
 ## Layout
 
     descriptor.mod              mod metadata (read from inside the mod dir)
+    thumbnail.png               Workshop preview image, must sit in the mod root
     gfx/FX/pdxterrain.shader    overrides game/gfx/FX/pdxterrain.shader
     install.sh                  copies the mod into the Proton prefix
+    steam-workshop/             Workshop listing texts and the thumbnail generator
 
 ## Installing
 
@@ -80,6 +82,13 @@ location and is *not* read by the Proton build.
 
 Close the launcher before installing, then start it and enable
 "Sharp Terrain Without Advanced Shaders" in the playset.
+
+`install.sh` only places the files; it cannot add the mod to a playset, because
+that lives in the launcher's own `launcher-v2.sqlite`. A freshly installed mod
+shows up in the launcher's mod list but is **not** enabled until you tick it in
+the playset - until then the game loads without it and nothing changes on screen.
+`dlc_load.json` next to the mod directory lists what was actually enabled on the
+last launch, which is the quickest way to check.
 
 Keep **Advanced Shaders off** in Graphics settings - with it on the game uses
 `PdxTerrain`/`PixelShader` and the mod does nothing.
