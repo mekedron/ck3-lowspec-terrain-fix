@@ -10,9 +10,17 @@
 Code
 [[
 	// TERRAINOPT_SNOW_MATERIAL
-	//   The high spec snow material (ApplySnowMaterialTerrain: height blend, normal
-	//   map, roughness, frost layer) instead of the flat procedural low spec snow.
-	//   About 4 ms of frame time at 5120x1440 in winter on an RTX 3050 Ti Laptop.
-	//   Switched on by the "Real Snow Without Advanced Shaders" add-on.
+	//   The snow material (height blend, normal map, roughness, frost layer) instead
+	//   of the flat procedural low spec snow, drawn by ApplySnowMaterialTerrainCheap:
+	//   vanilla's ApplySnowMaterialTerrain with every no-tile lookup (two reads plus
+	//   noise math) replaced by one plain read, and no second heightmap read. About 7
+	//   texture reads per snow pixel. Switched on by the "Real Snow Without Advanced
+	//   Shaders" add-on.
 	//#define TERRAINOPT_SNOW_MATERIAL
+
+	// TERRAINOPT_SNOW_MATERIAL_VANILLA
+	//   With the option above: vanilla's own ApplySnowMaterialTerrain instead of the
+	//   cheap one - the no-tile scrambling of the snow texture back, at about twice
+	//   the reads plus the noise math. For comparing, or for a GPU that does not care.
+	//#define TERRAINOPT_SNOW_MATERIAL_VANILLA
 ]]

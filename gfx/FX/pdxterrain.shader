@@ -3,8 +3,11 @@
 #
 # Options live in gfx/FX/sharp_terrain_options.fxh (included first). Add-on mods
 # override that one file to switch options on - see the README. Currently:
-#   TERRAINOPT_SNOW_MATERIAL  the high spec snow material in the low spec pixel
-#                             shader (the "Real Snow Without Advanced Shaders" add-on)
+#   TERRAINOPT_SNOW_MATERIAL  the snow material in the low spec pixel shader (the
+#                             "Real Snow Without Advanced Shaders" add-on), drawn by
+#                             ApplySnowMaterialTerrainCheap, a new function in this file
+#   TERRAINOPT_SNOW_MATERIAL_VANILLA  vanilla's ApplySnowMaterialTerrain instead of the
+#                             cheap one (about twice the texture reads plus noise math)
 #
 # Vanilla evaluates the terrain detail textures per *vertex* when "Advanced
 # Shaders" is off (CalculateDetailsLowSpec is called from TerrainVertexLowSpec
@@ -18,6 +21,7 @@
 #
 # Changes vs vanilla, all at the bottom of the file plus one new MainCode block:
 #   * new MainCode PixelShaderLowSpecSharp
+#   * new function ApplySnowMaterialTerrainCheap in the PixelShader Code block
 #   * Effect PdxTerrainLowSpec      -> VertexShader + PixelShaderLowSpecSharp
 #   * Effect PdxTerrainLowSpecSkirt -> VertexShaderSkirt + PixelShaderLowSpecSharp
 #   * #define TERRAINOPT_SKIP_HIDDEN_TERRAIN in the PixelShader Code block, and
@@ -456,6 +460,95 @@ PixelShader =
 		// gfx/FX/sharp_terrain_options.fxh, so that an add-on mod can switch it on by
 		// overriding that single file.
 
+		// TERRAINOPT_SNOW_MATERIAL_VANILLA is not defined here either: with the snow
+		// option on, the low spec shader draws the cheap snow material below; that define
+		// (options file, or shader_debug) switches it to vanilla's ApplySnowMaterialTerrain.
+
+		// The vanilla snow material (dynamic_masks.fxh, ApplySnowMaterialTerrain) at a low
+		// spec price. Same masks, same height blend, same frost layer, same look up close;
+		// what goes: every SampleNoTile (two texture reads plus a sine noise lookup each,
+		// five of them) becomes one plain read, and the heightmap is not read again for
+		// the mountain term because the pixel shader already has the world height.
+		// About 7 texture reads per snow pixel instead of about 14 plus the noise math.
+		// The snow texture repeats at its tiling instead of being scrambled by the noise;
+		// on a near uniform white texture that is not visible.
+		void ApplySnowMaterialTerrainCheap( inout float4 Diffuse, inout float3 Normal, inout float4 Properties, float3 TerrainNormal, in float2 WorldSpacePosXz, in float WorldHeight, in float2 MapCoords, inout float HighlightMask )
+		{
+			// Snow data. "Never snow here" exits after one read, as in vanilla.
+			SSnowEffectData SnowEffectData;
+			SnowEffectData._NoSnowMask = 1.0f - PdxTex2D( SnowMaskMap, float2( MapCoords.x, 1.0f - MapCoords.y ) ).r;
+			if ( SnowEffectData._NoSnowMask < 0.05f )
+			{
+				HighlightMask = 0.0f;
+				return;
+			}
+			// GetSnowEffectData without SampleNoTile and without GetHeight
+			float2 NoiseCoords = MapCoords + vec2( _SnowRandomNumber ) * 0.1f;
+			float4 SnowMaskColor = PdxTex2D( SnowMaskMap, NoiseCoords * _SnowNoiseTiling );
+			SnowEffectData._Noise = SnowMaskColor.b;
+			SnowEffectData._Noise3 = SnowMaskColor.g;
+			SnowEffectData._Noise2 = SnowMaskColor.b * SnowMaskColor.g;
+			SnowEffectData._SnowHemisphere = RemapClamped( 1.0f - MapCoords.y, 0.0f, 1.0f, 0.0f, 1.0f );
+			SnowEffectData._Height = RemapClamped( WorldHeight, _SnowTerrainHeightMin, _SnowTerrainHeightMax, 0.0f, 1.0f );
+
+			// Masks, as vanilla, with one plain read for the large scale noise
+			float Noise = 1.0f - PdxTex2D( SnowMaskMap, MapCoords * 5.0f ).a;
+			float GameSnow = GetWinterSeverityValue( MapCoords );
+			float GameSnowMask = smoothstep( _SnowGameMaskMin, _SnowGameMaskMax, GameSnow ) * _SnowGameMaskImpact * Noise;
+			float Winter = GetWinterValue();
+			Winter = saturate( Winter + GameSnowMask - Winter * GameSnowMask );
+
+			float Snow = GetWinterMask( Winter, MapCoords, _SnowTerrainAreaPosition, _SnowTerrainAreaContrast, _SnowHemispherePosition, _SnowHemisphereContrast, SnowEffectData, GameSnowMask, GameSnowMask );
+			float Frost = GetWinterMask( Winter, MapCoords, _FrostTerrainAreaPosition, _FrostTerrainAreaContrast, _FrostHemispherePosition, _FrostHemisphereContrast, SnowEffectData, 0.0f, GameSnowMask );
+			float WinterSmoothstep = smoothstep( 0.0f, 0.1f, Winter );
+			Frost *= _FrostMultiplier * WinterSmoothstep;
+			Snow *= WinterSmoothstep;
+
+			if ( Snow < SKIP_VALUE && Frost < SKIP_VALUE )
+			{
+				HighlightMask = Snow;
+				return;
+			}
+			// Remove snow from steep angle
+			TerrainNormal.y = smoothstep( _SnowAngleRemove, 1.0f, abs( TerrainNormal.y ) );
+			Snow = lerp( 0.0f, Snow, TerrainNormal.y );
+			HighlightMask = Snow;
+
+			// The snow material: one plain read each instead of SampleNoTile
+			float2 SnowUV = CalcDetailUV( WorldSpacePosXz ) * _SnowTextureTiling;
+			float4 SnowDiffuse = PdxTex2D( DetailTextures, float3( SnowUV, _SnowTexIndex ) );
+			float4 SnowNormalRRxG = PdxTex2D( NormalTextures, float3( SnowUV, _SnowTexIndex ) );
+			float3 SnowNormal = UnpackRRxGNormal( SnowNormalRRxG ).xyz;
+			float4 SnowProperties = PdxTex2D( MaterialTextures, float3( SnowUV, _SnowTexIndex ) );
+
+			// Terrain material blend, as vanilla
+			Diffuse.a = lerp( 0.0f, Diffuse.a, _SnowHeightWeight );
+			SnowDiffuse.a = 1.0f - lerp( 1.0f, SnowDiffuse.a, 1.0f - _SnowHeightWeight );
+			SnowDiffuse.a *= SnowEffectData._Noise3;
+			float2 BlendFactors = CalcHeightBlendFactors( float2( Diffuse.a, SnowDiffuse.a ), float2( 1.0f - Snow, Snow ), DetailBlendRange * _SnowHeightContrast * Snow );
+
+			// Initial Frost Layer
+			Diffuse = lerp( Diffuse, SnowDiffuse, Frost );
+			Normal = lerp( Normal, SnowNormal, Frost );
+			Properties = lerp( Properties, SnowProperties, Frost );
+
+			float BlendValue = BlendFactors.y;
+			BlendValue = 1 - pow( 1 - BlendValue, 5 );
+
+			// Add more details to the snow
+			float DetailAngleReduction = smoothstep( 0.0f, 0.02f, abs( Normal.y ) );
+			DetailAngleReduction = lerp( 0.5f, 0.0f, DetailAngleReduction );
+			DetailAngleReduction = clamp( DetailAngleReduction * Snow, 0.0f, 1.0f );
+			BlendValue = lerp( BlendValue, 0.0f, DetailAngleReduction );
+			BlendValue = BlendValue - smoothstep( 0.25f, 1.0f, SnowEffectData._Noise2 ) * 2.0f;
+			BlendValue = max( 0.000001f, BlendValue );
+
+			// Snow Layer
+			Diffuse = lerp( Diffuse, SnowDiffuse, BlendValue );
+			Normal = lerp( Normal, SnowNormal, BlendValue );
+			Properties = lerp( Properties, SnowProperties, BlendValue );
+		}
+
 		static const float UNDERWATER_CLIP_OFFSET = 0.00001f;
 		static const float TERRAIN_SKIRT_CLIP_OFFSET = 0.01f;
 		SLightingProperties GetFlatMapLerpSunLightingProperties( float3 WorldSpacePos, float ShadowTerm )
@@ -885,7 +978,11 @@ PixelShader =
 						// The snow material blends into the detail height, normal and
 						// material as well, so snow gets its own normals and roughness,
 						// and SnowHighlight feeds the white highlight compensation below.
-						ApplySnowMaterialTerrain( DetailDiffuseHeight, DetailNormal, DetailMaterial, Normal, Input.WorldSpacePos.xz, ColorMapCoords, SnowHighlight );
+						#ifdef TERRAINOPT_SNOW_MATERIAL_VANILLA
+							ApplySnowMaterialTerrain( DetailDiffuseHeight, DetailNormal, DetailMaterial, Normal, Input.WorldSpacePos.xz, ColorMapCoords, SnowHighlight );
+						#else
+							ApplySnowMaterialTerrainCheap( DetailDiffuseHeight, DetailNormal, DetailMaterial, Normal, Input.WorldSpacePos.xz, Input.WorldSpacePos.y, ColorMapCoords, SnowHighlight );
+						#endif
 						DetailDiffuse = DetailDiffuseHeight.rgb;
 					#else
 						DetailDiffuse = ApplyDynamicMasksDiffuse( DetailDiffuse, Normal, ColorMapCoords );

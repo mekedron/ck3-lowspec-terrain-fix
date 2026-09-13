@@ -67,6 +67,7 @@ MAIN_MAP = {('pdxterrain.shader', 'PdxTerrainLowSpec'): {'PixelShaderLowSpec': '
 VARIANTS = [
     ('default', []),
     ('snow_material', ['-DTERRAINOPT_SNOW_MATERIAL']),
+    ('snow_vanilla', ['-DTERRAINOPT_SNOW_MATERIAL', '-DTERRAINOPT_SNOW_MATERIAL_VANILLA']),
 ] if not os.path.exists(os.path.join(MOD, 'gfx/FX/fastadv.fxh')) else [
     ('default', []),
     ('disable_all', ['-DADVOPT_DISABLE_ALL']),
