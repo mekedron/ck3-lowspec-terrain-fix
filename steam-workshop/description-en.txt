@@ -39,7 +39,7 @@ Everything that actually makes Advanced Shaders expensive stays switched off: no
 Optional features are switched from one small options file the shader includes, so an add-on can turn them on without replacing the shader. Place add-ons [b]below[/b] this mod in the load order.
 
 [list]
-[*][b]Real Snow Without Advanced Shaders[/b] — the high spec snow material on the low spec map: a solid snow cover with relief, sheen and frost instead of flat blotches. Vanilla's snow material with its no-tile lookups replaced by plain texture reads: about 7 reads per snow pixel instead of about 14 plus the noise math. [url=STEAM_LINK_REAL_SNOW]Workshop[/url]
+[*][b]Real Snow Without Advanced Shaders[/b] — the high spec snow material on the low spec map: a solid snow cover with relief, sheen and frost instead of flat blotches. Vanilla's snow material with its no-tile lookups replaced by plain texture reads: about 7 reads per snow pixel instead of about 14 plus the noise math. [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3800565268]Workshop[/url]
 [/list]
 
 [h2]Compatibility[/h2]
