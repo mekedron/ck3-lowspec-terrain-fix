@@ -110,7 +110,7 @@ across all mods, and the lowest mod wins.
 
 | option | what it does | add-on |
 | --- | --- | --- |
-| `TERRAINOPT_SNOW_MATERIAL` | the snow material (height blend, normals, roughness, frost) instead of the flat procedural low spec snow, drawn by `ApplySnowMaterialTerrainCheap`: vanilla's material with every no-tile lookup (two reads plus noise math) replaced by one plain read and without a second heightmap read, about 7 texture reads per snow pixel instead of about 14 | [Real Snow Without Advanced Shaders](https://github.com/mekedron/ck3-lowspec-real-snow) |
+| `TERRAINOPT_SNOW_MATERIAL` | the snow material (height blend, normals, roughness, frost) instead of the flat procedural low spec snow, drawn by `ApplySnowMaterialTerrainCheap`: vanilla's material with every no-tile lookup (two reads plus noise math) replaced by plain reads and without a second heightmap read, about 9 texture reads per snow pixel instead of about 14 | [Real Snow Without Advanced Shaders](https://github.com/mekedron/ck3-lowspec-real-snow) |
 | `TERRAINOPT_SNOW_MATERIAL_VANILLA` | with the option above: vanilla's own `ApplySnowMaterialTerrain` instead of the cheap one, for comparing | uncomment it in the options file |
 
 You can also uncomment the define in the base mod's own file, of course.

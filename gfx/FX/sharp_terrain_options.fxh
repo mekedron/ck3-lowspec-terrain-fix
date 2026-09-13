@@ -13,7 +13,7 @@ Code
 	//   The snow material (height blend, normal map, roughness, frost layer) instead
 	//   of the flat procedural low spec snow, drawn by ApplySnowMaterialTerrainCheap:
 	//   vanilla's ApplySnowMaterialTerrain with every no-tile lookup (two reads plus
-	//   noise math) replaced by one plain read, and no second heightmap read. About 7
+	//   noise math) replaced by plain reads, and no second heightmap read. About 9
 	//   texture reads per snow pixel. Switched on by the "Real Snow Without Advanced
 	//   Shaders" add-on.
 	//#define TERRAINOPT_SNOW_MATERIAL

@@ -34,7 +34,7 @@ ADD-ONS
 
 Optional features are switched from one small options file the shader includes, so an add-on can turn them on without replacing the shader. Place add-ons below this mod in the load order.
 
-- Real Snow Without Advanced Shaders — the high spec snow material on the low spec map: a solid snow cover with relief, sheen and frost instead of flat blotches. Vanilla's snow material with its no-tile lookups replaced by plain texture reads: about 7 reads per snow pixel instead of about 14 plus the noise math. https://steamcommunity.com/sharedfiles/filedetails/?id=3800565268
+- Real Snow Without Advanced Shaders — the high spec snow material on the low spec map: a solid snow cover with relief, sheen and frost instead of flat blotches. Vanilla's snow material with its no-tile lookups replaced by plain texture reads: about 9 reads per snow pixel instead of about 14 plus the noise math. https://steamcommunity.com/sharedfiles/filedetails/?id=3800565268
 
 COMPATIBILITY
 

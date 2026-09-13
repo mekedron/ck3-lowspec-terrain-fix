@@ -466,10 +466,11 @@ PixelShader =
 
 		// The vanilla snow material (dynamic_masks.fxh, ApplySnowMaterialTerrain) at a low
 		// spec price. Same masks, same height blend, same frost layer, same look up close;
-		// what goes: every SampleNoTile (two texture reads plus a sine noise lookup each,
-		// five of them) becomes one plain read, and the heightmap is not read again for
-		// the mountain term because the pixel shader already has the world height.
-		// About 7 texture reads per snow pixel instead of about 14 plus the noise math.
+		// what goes: the sine noise and the derivative work of every SampleNoTile (five
+		// per pixel), and the second heightmap read for the mountain term, because the
+		// pixel shader already has the world height. The two mask lookups keep two reads
+		// each (averaged, see below), the three material lookups become one read each.
+		// About 9 texture reads per snow pixel instead of about 14 plus the noise math.
 		// The snow texture repeats at its tiling instead of being scrambled by the noise;
 		// on a near uniform white texture that is not visible.
 		void ApplySnowMaterialTerrainCheap( inout float4 Diffuse, inout float3 Normal, inout float4 Properties, float3 TerrainNormal, in float2 WorldSpacePosXz, in float WorldHeight, in float2 MapCoords, inout float HighlightMask )
@@ -482,17 +483,22 @@ PixelShader =
 				HighlightMask = 0.0f;
 				return;
 			}
-			// GetSnowEffectData without SampleNoTile and without GetHeight
-			float2 NoiseCoords = MapCoords + vec2( _SnowRandomNumber ) * 0.1f;
-			float4 SnowMaskColor = PdxTex2D( SnowMaskMap, NoiseCoords * _SnowNoiseTiling );
+			// GetSnowEffectData without the noise math and without GetHeight. Vanilla's
+			// SampleNoTile blends two samples of the mask taken at a per region random
+			// offset, and over most of the map that blend is a real mix of the two - which
+			// halves the mask's variance and is what keeps the snow cover closed. A single
+			// read has the full variance and opens holes in the cover, so two reads at fixed
+			// offsets are averaged instead: same statistics, no noise math.
+			float2 NoiseCoords = ( MapCoords + vec2( _SnowRandomNumber ) * 0.1f ) * _SnowNoiseTiling;
+			float4 SnowMaskColor = 0.5f * ( PdxTex2D( SnowMaskMap, NoiseCoords ) + PdxTex2D( SnowMaskMap, NoiseCoords + float2( 0.37f, 0.61f ) ) );
 			SnowEffectData._Noise = SnowMaskColor.b;
 			SnowEffectData._Noise3 = SnowMaskColor.g;
 			SnowEffectData._Noise2 = SnowMaskColor.b * SnowMaskColor.g;
 			SnowEffectData._SnowHemisphere = RemapClamped( 1.0f - MapCoords.y, 0.0f, 1.0f, 0.0f, 1.0f );
 			SnowEffectData._Height = RemapClamped( WorldHeight, _SnowTerrainHeightMin, _SnowTerrainHeightMax, 0.0f, 1.0f );
 
-			// Masks, as vanilla, with one plain read for the large scale noise
-			float Noise = 1.0f - PdxTex2D( SnowMaskMap, MapCoords * 5.0f ).a;
+			// Masks, as vanilla; the large scale noise averaged the same way
+			float Noise = 1.0f - 0.5f * ( PdxTex2D( SnowMaskMap, MapCoords * 5.0f ).a + PdxTex2D( SnowMaskMap, MapCoords * 5.0f + float2( 0.29f, 0.53f ) ).a );
 			float GameSnow = GetWinterSeverityValue( MapCoords );
 			float GameSnowMask = smoothstep( _SnowGameMaskMin, _SnowGameMaskMax, GameSnow ) * _SnowGameMaskImpact * Noise;
 			float Winter = GetWinterValue();
