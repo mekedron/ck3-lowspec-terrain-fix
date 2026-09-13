@@ -46,7 +46,7 @@ Optional features are switched from one small options file the shader includes, 
 
 Replaces gfx/FX/pdxterrain.shader in full. It conflicts only with mods that edit that same file — mostly map graphics overhauls. If you use one, place this mod [b]below[/b] it in the load order to keep the fix, or above it to keep the other mod's terrain.
 
-On the map of [b]A Game of Thrones[/b] this mod needs [url=STEAM_LINK_AGOT_PATCH]Sharp Terrain & Better Water: A Game of Thrones Patch[/url] below it: AGOT rewrites the terrain shader and its include files, so on its own this mod either does nothing (AGOT below) or breaks AGOT's terrain (AGOT above).
+On the map of [b]A Game of Thrones[/b] this mod needs [url=STEAM_LINK_AGOT_PATCH]AGOT Patch for Sharp Terrain & Better Water[/url] below it: AGOT rewrites the terrain shader and its include files, so on its own this mod either does nothing (AGOT below) or breaks AGOT's terrain (AGOT above).
 
 [h2]Source[/h2]
 
