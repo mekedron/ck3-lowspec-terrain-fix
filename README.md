@@ -114,6 +114,17 @@ across all mods, and the lowest mod wins.
 
 You can also uncomment the define in the base mod's own file, of course.
 
+## A Game of Thrones
+
+The AGOT total conversion ships its own `pdxterrain.shader` and rewrites the include
+files it shares with this one (its snow functions take extra arguments, the fog of war
+is replaced by an atmospheric pass). With AGOT below this mod in the load order AGOT's
+file wins and this mod does nothing; with AGOT above it this file is compiled against
+AGOT's includes, fails, and the terrain is not drawn. Use
+[Sharp Terrain & Better Water: A Game of Thrones Patch](https://github.com/mekedron/ck3-lowspec-agot-patch) below both; it is
+AGOT's shader with this mod's low spec path applied on top, and Real Snow works through
+it unchanged.
+
 ## Layout
 
     descriptor.mod              mod metadata (read from inside the mod dir)
