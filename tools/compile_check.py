@@ -80,13 +80,15 @@ VARIANTS = [
     ('diag_terrain', ['-DADVOPT_DIAG_TERRAIN_NO_OVERLAY', '-DADVOPT_DIAG_TERRAIN_NO_DETAILS', '-DADVOPT_DIAG_TERRAIN_NO_SNOW',
                       '-DADVOPT_DIAG_TERRAIN_NO_EFFECTS', '-DADVOPT_DIAG_TERRAIN_NO_LIGHTING', '-DADVOPT_DIAG_TERRAIN_NO_FOG']),
 ]
-MOD_MARKERS = ('ADVOPT_', 'TREEOPT_', 'TERRAINOPT_', 'CalcPrimaryProvinceOverlayPoint', 'PixelShaderLowSpecSharp')
+MOD_MARKERS = ('ADVOPT_', 'WATEROPT_', 'CalcWaterCheap', 'TREEOPT_', 'TERRAINOPT_', 'CalcPrimaryProvinceOverlayPoint', 'PixelShaderLowSpecSharp',
+                'ApplyDiseaseDiffuseLowSpec')
 
 def read(p):
     return open(p, 'rb').read().decode('utf-8', 'replace')
 
 def find_entry(cache, shader, effect, lowspec, want_marker, want_block=None):
-    for name in sorted(os.listdir(cache)):
+    # newest first: after a game patch the cache still holds the old version's entries
+    for name in sorted(os.listdir(cache), key=lambda n: -os.path.getmtime(os.path.join(cache, n))):
         if not name.endswith('.scache'):
             continue
         p = os.path.join(cache, name)
@@ -120,6 +122,28 @@ def switch_block():
             t = read(p)
             out += t[t.index('[[') + 2: t.index(']]')] + '\n'
     return out
+
+def hook_block():
+    """The Code block of gfx/FX/lowspec_disease.fxh, a file with no vanilla counterpart.
+    Unlike the options files it declares functions that use engine types, so it cannot be
+    prepended; it goes in just above the entry point, where every include it needs
+    (disease.fxh above all) has already been expanded."""
+    p = os.path.join(MOD, 'gfx/FX', 'lowspec_disease.fxh')
+    if not os.path.exists(p):
+        return ''
+    t = read(p)
+    return t[t.index('[[') + 2: t.rindex(']]')]
+
+def insert_before_main(text, code):
+    if not code.strip():
+        return text
+    import re as _re
+    sig = _re.compile(r'^\w[\w<>, ]* main\s*\(')
+    lines = text.split('\n')
+    for k, l in enumerate(lines):
+        if sig.match(l.strip()):
+            return '\n'.join(lines[:k] + code.split('\n') + lines[k:])
+    return text
 
 def code_blocks(text):
     """Return {key: [lines]} for every Code [[ ]] block of a Paradox shader file.
@@ -239,6 +263,8 @@ def main():
             for msg in apply_blocks(dst, van, modf, MAIN_MAP.get((shader, effect)) if f == shader else None):
                 rejected.append(f'{f}: {msg}')
         src = read(dst)
+        if 'ApplyDiseaseDiffuseLowSpec' in src:
+            src = insert_before_main(src, hook_block())
         open(dst, 'w').write(switch_block() + '\n' + src)
         for vname, defs in VARIANTS:
             r = subprocess.run([dxc, '-T', 'ps_6_0', '-E', 'main', '-HV', '2018', '-Fo', os.devnull] + defs + [dst], env=env, capture_output=True, text=True)

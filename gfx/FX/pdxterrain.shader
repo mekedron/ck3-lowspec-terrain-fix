@@ -1,5 +1,5 @@
 # Sharp Terrain Without Advanced Shaders - modified copy of
-# game/gfx/FX/pdxterrain.shader from CK3 1.19.0.6 (Scribe).
+# game/gfx/FX/pdxterrain.shader from CK3 1.20.0.2 (Crozier).
 #
 # Options live in gfx/FX/sharp_terrain_options.fxh (included first). Add-on mods
 # override that one file to switch options on - see the README. Currently:
@@ -26,9 +26,14 @@
 #   * Effect PdxTerrainLowSpecSkirt -> VertexShaderSkirt + PixelShaderLowSpecSharp
 #   * #define TERRAINOPT_SKIP_HIDDEN_TERRAIN in the PixelShader Code block, and
 #     the early out it guards inside PixelShaderLowSpecSharp
+#   * new include gfx/FX/lowspec_disease.fxh and the two ApplyDiseaseDiffuseLowSpec
+#     calls in PixelShaderLowSpecSharp - the epidemic hook, a no-op in this mod
 # The vanilla VertexShaderLowSpec / PixelShaderLowSpec blocks are left in place,
 # unreferenced, for diffing against future game patches.
 
+Includes = {
+	"sharp_terrain_options.fxh"
+	"cw/pdxterrain.fxh"
 Includes = {
 	"sharp_terrain_options.fxh"
 	"cw/pdxterrain.fxh"
@@ -48,6 +53,7 @@ Includes = {
 	"legend.fxh"
 	"dynamic_masks.fxh"
 	"disease.fxh"
+	"lowspec_disease.fxh"
 	"shadow_tint.fxh"
 	"clouds.fxh"
 	"province_effects.fxh"
@@ -584,7 +590,6 @@ PixelShader =
 			#endif
 			clip( vec2( 1.0f ) - MapCoords );
 		}
-
 	]]
 
 	MainCode PixelShader
@@ -608,6 +613,8 @@ PixelShader =
 				{
 					return float4( _UnderwaterTerrainColor.rgb, 0.0f );
 				}
+				EffectIntensities ConditionData;
+				BilinearSampleProvinceEffectsMask( ColorMapCoords, ConditionData );
 			#endif
 
 				float3 FlatMap = float3( 0.5f, 0.5f, 0.5f ); // neutral overlay
@@ -621,7 +628,7 @@ PixelShader =
 					float3 BorderColor;
 					float BorderPreLightingBlend;
 					float BorderPostLightingBlend;
-					GetBorderColorAndBlendGame( Input.WorldSpacePos.xz, FlatMap, BorderColor, BorderPreLightingBlend, BorderPostLightingBlend );
+					GetBorderColorAndBlendGame( Input.WorldSpacePos.xz, FlatMap, BorderColor, BorderPreLightingBlend, BorderPostLightingBlend, ConditionData._DivergentRites );
 
 					FullColorOverlayFactor = BorderPreLightingBlend + BorderPostLightingBlend;
 					FullColorOverlayFactor *= _FullyColorOverlayHeightBlend * _EnabledTerrainCulling;
@@ -654,7 +661,6 @@ PixelShader =
 				float ColorDarken = ColorMapSample.a;
 				float3 ColorMap = ColorMapSample.rgb;
 #endif
-
 				float SnowHighlight = 0.0f;
 				float3 Normal = CalculateNormal( Input.WorldSpacePos.xz );
 				#ifndef UNDERWATER
@@ -662,9 +668,7 @@ PixelShader =
 					if( !IsFullyColorOverlay )
 					{
 						float WaterNormalLerp = 0.0f;
-						EffectIntensities ConditionData;
-						BilinearSampleProvinceEffectsMask( ColorMapCoords, ConditionData );
-						ApplyProvinceEffectsTerrain( ConditionData, DetailDiffuse, DetailNormal, DetailMaterial, Input.WorldSpacePos, WaterNormalLerp );
+						ApplyProvinceEffectsTerrain( ConditionData, DetailDiffuse, DetailNormal, DetailMaterial, Normal, Input.WorldSpacePos, ColorMapCoords, WaterNormalLerp );
 
 						// Use the property that only water has lower roughness to adjust the terrain normals to face upward.
 						float WaterNormalAdjustment = smoothstep( 0.6f, 1.0f, 1 - DetailMaterial.a);
@@ -672,7 +676,6 @@ PixelShader =
 						float3 ReorientedNormal = ReorientNormal(
 							lerp( Normal, float3( 0.0f, 1.0f, 0.0f ), WaterNormalLerp ),
 							DetailNormal );
-
 						ApplySnowMaterialTerrain( DetailDiffuse, DetailNormal, DetailMaterial, Normal, Input.WorldSpacePos.xz, ColorMapCoords, SnowHighlight );
 
 						if( ConditionData._Drought > 0.0f || SnowHighlight > 0.0f )
@@ -693,7 +696,7 @@ PixelShader =
 						float3 FlatColor;
 						GetBorderColorAndBlendGameLerp( Input.WorldSpacePos.xz, FlatMap,
 							FlatColor, BorderPreLightingBlend, BorderPostLightingBlend,
-							FlatMapLerp );
+							FlatMapLerp, ConditionData._DivergentRites );
 
 						FlatMap = lerp( FlatMap, FlatColor,
 							saturate( BorderPreLightingBlend + BorderPostLightingBlend ) );
@@ -735,6 +738,8 @@ PixelShader =
 				 	float NdotL = saturate( dot( MaterialProps._Normal, LightingProps._ToLightDir ) ) + 1e-5;
 					BorderColor *= lerp( max( _WaterZoomedInZoomedOutFactor - 0.4f, 0.4f ), 1.0f, NdotL );
 					FinalColor.rgb = lerp( FinalColor.rgb, BorderColor, BorderPostLightingBlend );
+					ApplyDivergentRitesColor( ColorMapCoords, FinalColor, ConditionData );
+				
 					ApplyHighlightColor( FinalColor.rgb, HighlightColor, 0.25f );
 					ApplyDiseaseDiffuse( FinalColor, ColorMapCoords );
 					ApplyLegendDiffuse( FinalColor, ColorMapCoords );
@@ -763,7 +768,6 @@ PixelShader =
 					TerrainDebug( FinalColor, Input.WorldSpacePos );
 				#endif
 				// DebugReturn( FinalColor, MaterialProps, LightingProps, EnvironmentMap );
-
 				return float4( FinalColor, Alpha );
 			}
 		]]
@@ -793,7 +797,8 @@ PixelShader =
 					float3 BorderColor;
 					float BorderPreLightingBlend;
 					float BorderPostLightingBlend;
-					GetBorderColorAndBlendGame( Input.WorldSpacePos.xz, FlatMap, BorderColor, BorderPreLightingBlend, BorderPostLightingBlend );
+					float DivergentRites = SampleProvinceDivergentRitesEffectMask( ColorMapCoords );
+					GetBorderColorAndBlendGame( Input.WorldSpacePos.xz, FlatMap, BorderColor, BorderPreLightingBlend, BorderPostLightingBlend, DivergentRites );
 
 					FullColorOverlayFactor = BorderPreLightingBlend + BorderPostLightingBlend;
 					FullColorOverlayFactor *= _FullyColorOverlayHeightBlend * _EnabledTerrainCulling;
@@ -818,7 +823,7 @@ PixelShader =
 						float3 FlatColor;
 						GetBorderColorAndBlendGameLerp( Input.WorldSpacePos.xz, FlatMap,
 							FlatColor, BorderPreLightingBlend, BorderPostLightingBlend,
-							FlatMapLerp );
+							FlatMapLerp, DivergentRites );
 						FlatMap = lerp( FlatMap, FlatColor,
 							saturate( BorderPreLightingBlend + BorderPostLightingBlend ) );
 					#endif
@@ -838,19 +843,13 @@ PixelShader =
 				{
 					FinalColor = CalculateTerrainSunLightingLowSpec( MaterialProps, LightingProps );
 				}
-				#ifndef UNDERWATER
-					if( !IsFullyColorOverlay )
-					{
-						FinalColor = ApplyFogOfWar( FinalColor, Input.WorldSpacePos, FogOfWarAlpha );
-						FinalColor = ApplyMapDistanceFog( FinalColor, Input.WorldSpacePos, FogOfWarAlpha );
-					}
-				#endif
 
 				#ifdef TERRAIN_COLOR_OVERLAY
 					FinalColor.rgb = lerp( FinalColor.rgb, BorderColor, BorderPostLightingBlend );
 				#endif
 
 				#ifdef TERRAIN_COLOR_OVERLAY
+					ApplyDivergentRites( ColorMapCoords, FinalColor, DivergentRites, 0.0f );
 					float4 HighlightColor = GetHighlightColor( ColorMapCoords );
 					ApplyHighlightColor( FinalColor.rgb, HighlightColor );
 					CompensateWhiteHighlightColor( FinalColor.rgb, HighlightColor, SnowHighlight );
@@ -858,6 +857,14 @@ PixelShader =
 
 				#ifdef TERRAIN_FLAT_MAP_LERP
 					FinalColor = lerp( FinalColor, FlatMap, FlatMapLerp );
+				#endif
+
+				#ifndef UNDERWATER
+					if( !IsFullyColorOverlay )
+					{
+						FinalColor = ApplyFogOfWar( FinalColor, Input.WorldSpacePos, FogOfWarAlpha );
+						FinalColor = ApplyMapDistanceFog( FinalColor, Input.WorldSpacePos, FogOfWarAlpha );
+					}
 				#endif
 
 				float Alpha = 1.0f;
@@ -903,7 +910,8 @@ PixelShader =
 					float3 BorderColor;
 					float BorderPreLightingBlend;
 					float BorderPostLightingBlend;
-					GetBorderColorAndBlendGame( Input.WorldSpacePos.xz, FlatMap, BorderColor, BorderPreLightingBlend, BorderPostLightingBlend );
+					float DivergentRites = SampleProvinceDivergentRitesEffectMask( ColorMapCoords );
+					GetBorderColorAndBlendGame( Input.WorldSpacePos.xz, FlatMap, BorderColor, BorderPreLightingBlend, BorderPostLightingBlend, DivergentRites );
 
 					FullColorOverlayFactor = BorderPreLightingBlend + BorderPostLightingBlend;
 					FullColorOverlayFactor *= _FullyColorOverlayHeightBlend * _EnabledTerrainCulling;
@@ -929,17 +937,22 @@ PixelShader =
 							float3 OverlayFlatColor;
 							float OverlayPre;
 							GetBorderColorAndBlendGameLerp( Input.WorldSpacePos.xz, FlatMap,
-								OverlayFlatColor, OverlayPre, OverlayPost, FlatMapLerp );
+								OverlayFlatColor, OverlayPre, OverlayPost, FlatMapLerp, DivergentRites );
 							OverlayFlatMap = lerp( FlatMap, OverlayFlatColor,
 								saturate( OverlayPre + OverlayPost ) );
 						#endif
 
 						float3 OverlayColor = lerp( vec3( 0.0f ), BorderColor, OverlayPost );
 
+						ApplyDivergentRites( ColorMapCoords, OverlayColor, DivergentRites, 0.0f );
 						float4 OverlayHighlight = GetHighlightColor( ColorMapCoords );
 						ApplyHighlightColor( OverlayColor, OverlayHighlight );
 						// SnowHighlight is never written in this shader, so it is 0 here too.
 						CompensateWhiteHighlightColor( OverlayColor, OverlayHighlight, 0.0f );
+
+						// Same spot as ApplyDiseaseDiffuse in the high spec pixel shader:
+						// after the border colour and the highlight, before the flatmap.
+						ApplyDiseaseDiffuseLowSpec( OverlayColor, ColorMapCoords, FogOfWarAlpha );
 
 						#ifdef TERRAIN_FLAT_MAP_LERP
 							OverlayColor = lerp( OverlayColor, OverlayFlatMap, FlatMapLerp );
@@ -1009,7 +1022,7 @@ PixelShader =
 						float3 FlatColor;
 						GetBorderColorAndBlendGameLerp( Input.WorldSpacePos.xz, FlatMap,
 							FlatColor, BorderPreLightingBlend, BorderPostLightingBlend,
-							FlatMapLerp );
+							FlatMapLerp, DivergentRites );
 						FlatMap = lerp( FlatMap, FlatColor,
 							saturate( BorderPreLightingBlend + BorderPostLightingBlend ) );
 					#endif
@@ -1042,10 +1055,16 @@ PixelShader =
 				#endif
 
 				#ifdef TERRAIN_COLOR_OVERLAY
+					ApplyDivergentRites( ColorMapCoords, FinalColor, DivergentRites, 0.0f );
 					float4 HighlightColor = GetHighlightColor( ColorMapCoords );
 					ApplyHighlightColor( FinalColor.rgb, HighlightColor );
 					CompensateWhiteHighlightColor( FinalColor.rgb, HighlightColor, SnowHighlight );
 				#endif
+
+				// Same spot as ApplyDiseaseDiffuse in the high spec pixel shader: after
+				// the border colour and the highlight, before the flatmap. A no-op unless
+				// an add-on replaces gfx/FX/lowspec_disease.fxh.
+				ApplyDiseaseDiffuseLowSpec( FinalColor, ColorMapCoords, FogOfWarAlpha );
 
 				#ifdef TERRAIN_FLAT_MAP_LERP
 					FinalColor = lerp( FinalColor, FlatMap, FlatMapLerp );
@@ -1085,13 +1104,16 @@ PixelShader =
 
 
 				#ifdef TERRAIN_COLOR_OVERLAY
+					EffectIntensities ConditionData;
+					SampleProvinceEffectsMask( ColorMapCoords, ConditionData );
+
 					float3 BorderColor;
 					float BorderPreLightingBlend;
 					float BorderPostLightingBlend;
 
 					GetBorderColorAndBlendGameLerp( Input.WorldSpacePos.xz, FlatMap,
 						BorderColor, BorderPreLightingBlend, BorderPostLightingBlend,
-						1.0f );
+						1.0f, ConditionData._DivergentRites );
 
 					FlatMap = lerp( FlatMap, BorderColor,
 						saturate( BorderPreLightingBlend + BorderPostLightingBlend ) );
@@ -1101,6 +1123,7 @@ PixelShader =
 				float3 FinalColor = FlatMap;
 				#ifdef TERRAIN_COLOR_OVERLAY
 					float4 HighlightColor = GetHighlightColor( ColorMapCoords );
+					ApplyDivergentRitesFlatMapColor( ColorMapCoords, FinalColor, ConditionData );
 					ApplyHighlightColor( FinalColor, HighlightColor, 0.5f );
 				#endif
 

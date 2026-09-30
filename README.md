@@ -115,6 +115,18 @@ across all mods, and the lowest mod wins.
 
 You can also uncomment the define in the base mod's own file, of course.
 
+### The epidemic hook
+
+One feature does not go through the options file, because two add-ons cannot both
+override it. `gfx/FX/lowspec_disease.fxh` holds an empty `ApplyDiseaseDiffuseLowSpec()`,
+which `PixelShaderLowSpecSharp` calls at the two points where the high spec pixel shader
+calls vanilla's `ApplyDiseaseDiffuse` - a call that draws nothing with Advanced Shaders
+off, because the whole body of that function sits behind `#ifndef LOW_SPEC_SHADERS`. An
+add-on that ships its own copy of *that* file gets the epidemics of *Legends of the Dead*
+drawn on the low spec map, and can be used together with Real Snow:
+[Visible Epidemics Without Advanced Shaders](https://github.com/mekedron/ck3-lowspec-epidemics).
+In the base mod the hook is a no-op and costs nothing.
+
 ## A Game of Thrones
 
 The AGOT total conversion ships its own `pdxterrain.shader` and rewrites the include
@@ -132,6 +144,7 @@ it unchanged.
     thumbnail.png               Workshop preview image, must sit in the mod root
     gfx/FX/pdxterrain.shader    overrides game/gfx/FX/pdxterrain.shader
     gfx/FX/sharp_terrain_options.fxh   the option switches, overridable by add-ons
+    gfx/FX/lowspec_disease.fxh  the epidemic hook, a no-op, overridable by an add-on
     install.sh                  copies the mod into the Proton prefix
     tools/compile_check.py      offline compile check with DXC (see the file's docstring)
     tools/check_log.sh          mount + shader error check after a game start
@@ -170,7 +183,7 @@ still looks unchanged, delete that directory (~900 MB, the game rebuilds it).
 
 ## Game version
 
-Built against 1.19.0.6 (Scribe). Shader overrides fully replace the vanilla
+Built against 1.20.0.2 (Crozier). Shader overrides fully replace the vanilla
 file, so after a game patch re-diff `gfx/FX/pdxterrain.shader` against
 `<steam>/Crusader Kings III/game/gfx/FX/pdxterrain.shader`. The vanilla
 `VertexShaderLowSpec` / `PixelShaderLowSpec` blocks are deliberately left in the

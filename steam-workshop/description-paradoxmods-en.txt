@@ -28,7 +28,7 @@ NOTES
 - Graphics-only: no gameplay, script or history files are changed, so ironman and achievements are unaffected
 - Safe to add or remove at any time, including mid-campaign — it does not touch save games
 - The first map load after enabling is slower: the modified shader is compiled and cached from scratch
-- Built for CK3 1.19.x. Shader overrides replace the vanilla file wholesale, so a patch that reworks pdxterrain.shader will need an update here
+- Built for CK3 1.20.x. Shader overrides replace the vanilla file wholesale, so a patch that reworks pdxterrain.shader will need an update here
 
 ADD-ONS
 
