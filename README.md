@@ -8,6 +8,10 @@ blurry watercolour in that mode, regardless of the Texture Quality setting.
 
 <img src="thumbnail.png" alt="Same desert with Advanced Shaders off: blurry in vanilla, sharp with this mod" width="360">
 
+**All four in one:** Sharp Terrain, Real Snow, Better Water and Smooth Zoom Transitions
+also come as one mod, [All-in-One Map Pack Without Advanced Shaders](https://github.com/mekedron/ck3-lowspec-all-in-one) -
+optional, for the vanilla map, used instead of the separate mods.
+
 ## Where to get
 
 * [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3800159542)
