@@ -2,7 +2,7 @@
 
 [b]Гайд:[/b] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3800254441]CK3 on a potato PC: a locked 60 FPS, and the map still looks sharp[/url] — полный список настроек под этот мод: видеокарта на 4 ГБ, 5120x1440 (на английском).
 
-[b]Все четыре в одном:[/b] Sharp Terrain, Real Snow, Better Water и Smooth Zoom Transitions есть и одним модом — [url=https://steamcommunity.com/sharedfiles/filedetails/?id=ALL_IN_ONE_ID]All-in-One Map Pack Without Advanced Shaders[/url]. Необязательно, для ванильной карты; вместо отдельных модов, а не вместе с ними.
+[b]Все четыре в одном:[/b] Sharp Terrain, Real Snow, Better Water и Smooth Zoom Transitions есть и одним модом — [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3815911404]All-in-One Map Pack Without Advanced Shaders[/url]. Необязательно, для ванильной карты; вместо отдельных модов, а не вместе с ними.
 
 Если выключить графическую опцию [b]Advanced Shaders[/b] («продвинутые шейдеры»), вся карта превращается в размытую акварель — независимо от того, насколько высоко выставлено качество текстур. Мод возвращает земле полное разрешение, оставляя опцию выключенной.
 

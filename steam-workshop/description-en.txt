@@ -2,7 +2,7 @@
 
 [b]Guide:[/b] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3800254441]CK3 on a potato PC: a locked 60 FPS, and the map still looks sharp[/url] — the full settings list this mod is built around, on a 4 GB laptop GPU at 5120x1440.
 
-[b]All four in one:[/b] Sharp Terrain, Real Snow, Better Water and Smooth Zoom Transitions also come as a single mod, [url=https://steamcommunity.com/sharedfiles/filedetails/?id=ALL_IN_ONE_ID]All-in-One Map Pack Without Advanced Shaders[/url] — optional, for the vanilla map; use it instead of the separate mods, not alongside them.
+[b]All four in one:[/b] Sharp Terrain, Real Snow, Better Water and Smooth Zoom Transitions also come as a single mod, [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3815911404]All-in-One Map Pack Without Advanced Shaders[/url] — optional, for the vanilla map; use it instead of the separate mods, not alongside them.
 
 With the [b]Advanced Shaders[/b] graphics option turned off, the entire map turns into a blurry watercolour — no matter how high Texture Quality is set. This mod restores full-resolution ground textures while leaving that option off.
 

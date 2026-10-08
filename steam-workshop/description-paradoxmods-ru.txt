@@ -2,7 +2,7 @@ Sharp Terrain Without Advanced Shaders
 
 Гайд: https://steamcommunity.com/sharedfiles/filedetails/?id=3800254441 — полный список настроек под этот мод: видеокарта на 4 ГБ, 5120x1440 (на английском).
 
-Все четыре в одном: Sharp Terrain, Real Snow, Better Water и Smooth Zoom Transitions есть и одним модом — https://steamcommunity.com/sharedfiles/filedetails/?id=ALL_IN_ONE_ID. Необязательно, для ванильной карты; вместо отдельных модов, а не вместе с ними.
+Все четыре в одном: Sharp Terrain, Real Snow, Better Water и Smooth Zoom Transitions есть и одним модом — https://steamcommunity.com/sharedfiles/filedetails/?id=3815911404. Необязательно, для ванильной карты; вместо отдельных модов, а не вместе с ними.
 
 Если выключить графическую опцию Advanced Shaders («продвинутые шейдеры»), вся карта превращается в размытую акварель — независимо от того, насколько высоко выставлено качество текстур. Мод возвращает земле полное разрешение, оставляя опцию выключенной.
 
