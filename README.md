@@ -8,7 +8,7 @@ blurry watercolour in that mode, regardless of the Texture Quality setting.
 
 <img src="thumbnail.png" alt="Same desert with Advanced Shaders off: blurry in vanilla, sharp with this mod" width="360">
 
-**All four in one:** Sharp Terrain, Real Snow, Better Water and Smooth Zoom Transitions
+**All five in one:** Sharp Terrain, Real Snow, Better Water, Smooth Zoom Transitions and Unit Coats of Arms
 also come as one mod, [All-in-One Map Pack Without Advanced Shaders](https://github.com/mekedron/ck3-lowspec-all-in-one) -
 optional, for the vanilla map, used instead of the separate mods.
 
@@ -187,7 +187,7 @@ still looks unchanged, delete that directory (~900 MB, the game rebuilds it).
 
 ## Game version
 
-Built against 1.20.0.2 (Crozier). Shader overrides fully replace the vanilla
+Built against 1.21.0 (Florin). Shader overrides fully replace the vanilla
 file, so after a game patch re-diff `gfx/FX/pdxterrain.shader` against
 `<steam>/Crusader Kings III/game/gfx/FX/pdxterrain.shader`. The vanilla
 `VertexShaderLowSpec` / `PixelShaderLowSpec` blocks are deliberately left in the

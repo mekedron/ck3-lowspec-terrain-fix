@@ -6,7 +6,7 @@ I have asked Paradox for one graphics checkbox that makes the map sharp with Adv
 
 [b]Guide:[/b] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3800254441]CK3 on a potato PC: a locked 60 FPS, and the map still looks sharp[/url] — the full settings list this mod is built around, on a 4 GB laptop GPU at 5120x1440.
 
-[b]All four in one:[/b] Sharp Terrain, Real Snow, Better Water and Smooth Zoom Transitions also come as a single mod, [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3815911404]All-in-One Map Pack Without Advanced Shaders[/url] — optional, for the vanilla map; use it instead of the separate mods, not alongside them.
+[b]All five in one:[/b] Sharp Terrain, Real Snow, Better Water, Smooth Zoom Transitions and Unit Coats of Arms also come as a single mod, [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3815911404]All-in-One Map Pack Without Advanced Shaders[/url] — optional, for the vanilla map; use it instead of the separate mods, not alongside them.
 
 With the [b]Advanced Shaders[/b] graphics option turned off, the entire map turns into a blurry watercolour — no matter how high Texture Quality is set. This mod restores full-resolution ground textures while leaving that option off.
 
@@ -37,7 +37,7 @@ Everything that actually makes Advanced Shaders expensive stays switched off: no
 [*]Graphics-only: no gameplay, script or history files are changed, so ironman and achievements are unaffected
 [*]Safe to add or remove at any time, including mid-campaign — it does not touch save games
 [*]The first map load after enabling is slower: the modified shader is compiled and cached from scratch
-[*]Built for CK3 1.20.x. Shader overrides replace the vanilla file wholesale, so a patch that reworks pdxterrain.shader will need an update here
+[*]Built for CK3 1.21.x. Shader overrides replace the vanilla file wholesale, so a patch that reworks pdxterrain.shader will need an update here
 [/list]
 
 [h2]Add-ons[/h2]
