@@ -151,6 +151,8 @@ it unchanged.
     gfx/FX/lowspec_disease.fxh  the epidemic hook, a no-op, overridable by an add-on
     install.sh                  copies the mod into the Proton prefix
     tools/compile_check.py      offline compile check with DXC (see the file's docstring)
+    tools/compile_check_sources.py  patch-day DXC check of the whole mod family, built from
+                                the current game sources; needs no game start
     tools/check_log.sh          mount + shader error check after a game start
     tools/diff_vanilla.sh       re-diff against the Steam file after a patch
     steam-workshop/             Workshop listing texts and the thumbnail generator
@@ -188,7 +190,7 @@ still looks unchanged, delete that directory (~900 MB, the game rebuilds it).
 ## Game version
 
 Built against 1.21.0 (Florin). Shader overrides fully replace the vanilla
-file, so after a game patch re-diff `gfx/FX/pdxterrain.shader` against
+file, so after a game patch run `tools/compile_check_sources.py` and re-diff `gfx/FX/pdxterrain.shader` against
 `<steam>/Crusader Kings III/game/gfx/FX/pdxterrain.shader`. The vanilla
 `VertexShaderLowSpec` / `PixelShaderLowSpec` blocks are deliberately left in the
 file, unreferenced, to make that diff readable.
